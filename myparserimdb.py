@@ -18,6 +18,25 @@ def search(name):
         #print(temp.get_text())
     return answer
 
+def get_season_episods(id,season):
+    page = requests.get('http://www.imdb.com/title/%s/episodes/_ajax?season=%s&ref_=ttep_ep_sn_nx' % (id, season)).text
+    episods = BeautifulSoup(page, 'html.parser').find_all('div',class_='info')
+
+    del page
+
+    nowepisode = 1
+
+    result = {}
+
+    for episode in episods:
+        nameepisode = episode.find_all('strong')[0].find_all('a')[0].get_text()
+        time = episode.find_all('div', 'airdate')[0].get_text().strip()
+        result[nowepisode] = {'name_episode': nameepisode, 'time': time}
+        nowepisode += 1
+
+    return result
+
+
 def get_episods(id):
     page = requests.get('http://www.imdb.com/title/%s/episodes/_ajax?season=%s&ref_=ttep_ep_sn_nx'%(id,'1')).text
     allseasons = BeautifulSoup(page, 'html.parser').find_all('select',id='bySeason')[0].find_all('option', value=True)
@@ -30,16 +49,7 @@ def get_episods(id):
     del page,allseasons
 
     while nowseason <= maxseasons:
-        page = requests.get('http://www.imdb.com/title/%s/episodes/_ajax?season=%s&ref_=ttep_ep_sn_nx' % (id, str(nowseason))).text
-        allepisods = BeautifulSoup(page, 'html.parser').find_all('div',class_='info')
-        episodes = {}
-        nowepisoze = 1
-        for episode in allepisods:
-            nameepisode = episode.find_all('strong')[0].find_all('a')[0].get_text()
-            time = episode.find_all('div','airdate')[0].get_text().strip()
-            episodes[nowepisoze] = {'name_episode':nameepisode,'time':time}
-            nowepisoze+=1
-        response[nowseason] = episodes
+        response[nowseason] = get_season_episods(id,str(nowseason))
         nowseason+=1
 
     return response
@@ -47,10 +57,14 @@ def get_episods(id):
 import time
 start_time = time.time()
 
-result = search('13 причин почему')
+result = search('game of thrones')
 print(result)
 
 print("--- %s seconds to check search ---" % (time.time() - start_time))
+
+print(get_season_episods(result[0]['id'],'1'))
+
+print("--- %s seconds to check a season episodes ---" % (time.time() - start_time))
 
 print(get_episods(result[0]['id']))
 
