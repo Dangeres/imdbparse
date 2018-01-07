@@ -3,8 +3,8 @@ from bs4 import BeautifulSoup
 import json
 
 def search(name):
-    myrequest = requests.get('http://www.imdb.com/find?q=%s&s=tt&exact=true&ref_=fn_tt_ex'%name).text
-    myresults = BeautifulSoup(myrequest, 'html.parser').find_all('table', class_='findList')[0].find_all('tr')
+    myrequest = requests.get('http://www.imdb.com/find?q=%s&s=tt&ref_=fn_tt_pop'%name).text
+    myresults = BeautifulSoup(myrequest, 'html.parser').find_all('table', class_='findList')[0].find_all('tr')[:10]
 
     del myrequest
 
@@ -15,7 +15,7 @@ def search(name):
         link = temp.find_all('a',href=True)[0]['href']
         id = link[7:link.find('/?ref')]
         answer.append({'name':temp.get_text(),'id':id,'image':one.find_all('img',src=True)[0]['src']})
-        
+        #print(temp.get_text())
     return answer
 
 def get_episods(id):
@@ -47,7 +47,7 @@ def get_episods(id):
 import time
 start_time = time.time()
 
-result = search(' Игра престолов ')
+result = search('13 причин почему')
 print(result)
 
 print("--- %s seconds to check search ---" % (time.time() - start_time))
