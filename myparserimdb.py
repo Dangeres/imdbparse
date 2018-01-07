@@ -1,4 +1,5 @@
 import requests
+import threading
 from bs4 import BeautifulSoup
 import json
 
@@ -48,24 +49,33 @@ def get_episods(id):
 
     del page,allseasons
 
+    threads = []
+
     while nowseason <= maxseasons:
-        response[nowseason] = get_season_episods(id,str(nowseason))
+        t = threading.Thread(target=lambda q, arg1, arg2: q.update( {nowseason:get_season_episods(arg1,arg2)} ), args=(response,id,nowseason))
+        t.start()
+        threads.append(t)
         nowseason+=1
+
+    for t in threads:
+        t.join()
 
     return response
 
 import time
 start_time = time.time()
 
-result = search('game of thrones')
+result = search('Игра престолов')
 print(result)
 
 print("--- %s seconds to check search ---" % (time.time() - start_time))
+start_time = time.time()
 
 print(get_season_episods(result[0]['id'],'1'))
 
-print("--- %s seconds to check a season episodes ---" % (time.time() - start_time))
+print("--- %s seconds to check a season episods ---" % (time.time() - start_time))
+start_time = time.time()
 
 print(get_episods(result[0]['id']))
 
-print("--- %s seconds to get episodes ---" % (time.time() - start_time))
+print("--- %s seconds to get all episods ---" % (time.time() - start_time))
